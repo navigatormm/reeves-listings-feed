@@ -1,19 +1,36 @@
 #!/usr/bin/env python3
 """Build a Meta (Facebook) catalog-compatible RSS feed from reevesrealty.ca listings."""
 import re
+import sys
+import time
 import html as htmllib
 import urllib.request
+import urllib.error
 import xml.sax.saxutils as sx
 from datetime import datetime, timezone
 
 LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
-UA = {"User-Agent": "Mozilla/5.0 (compatible; ReevesRealtyFeedBot/1.0)"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-CA,en;q=0.9",
+}
 
 
-def fetch(url):
-    req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="replace")
+def fetch(url, attempts=3):
+    last_err = None
+    for i in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            last_err = e
+            code = getattr(e, "code", "")
+            print(f"  fetch attempt {i + 1}/{attempts} failed for {url}: {code} {e}")
+            time.sleep(5 * (i + 1))
+    raise last_err
 
 
 def parse_cards(page):
@@ -49,8 +66,8 @@ def get_description(url):
         m = re.search(r'<meta name="description" content="([^"]*)"', page)
         if m:
             return htmllib.unescape(m.group(1)).strip()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  WARNING: could not get description from {url}: {e}")
     return ""
 
 
@@ -115,17 +132,26 @@ def parse_all_pages():
             break
         nxt = htmllib.unescape(m.group(1))
         url = nxt if nxt.startswith("http") else LISTINGS_URL + nxt
+        time.sleep(1)
     return cards
 
 
 def main():
-    cards = parse_all_pages()
+    try:
+        cards = parse_all_pages()
+    except Exception as e:
+        print(f"ERROR: could not fetch the listings page: {e}")
+        print("The previous feed.xml is kept unchanged.")
+        sys.exit(1)
     print(f"Found {len(cards)} listings")
     if not cards:
-        raise SystemExit("No listings found - site layout may have changed; keeping previous feed.")
+        print("ERROR: page fetched but zero listings parsed - site layout may have changed.")
+        print("The previous feed.xml is kept unchanged.")
+        sys.exit(1)
     for c in cards:
         c["desc"] = get_description(c["url"])
         print(f'  {c["mls"]}: {c["address"]} {c["price"]} desc={len(c["desc"])} chars')
+        time.sleep(0.5)
     xml = build_xml(cards)
     with open("feed.xml", "w", encoding="utf-8") as f:
         f.write(xml)
