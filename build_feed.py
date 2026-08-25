@@ -99,9 +99,27 @@ def build_xml(cards):
 """
 
 
+def parse_all_pages():
+    """Crawl listings.php and every paginated page (?p=2, ?p=3, ...) via rel=next."""
+    cards, seen = [], set()
+    url = LISTINGS_URL
+    for _ in range(50):  # safety cap on page count
+        page = fetch(url)
+        page_cards = [c for c in parse_cards(page) if c["mls"] not in seen]
+        for c in page_cards:
+            seen.add(c["mls"])
+        cards.extend(page_cards)
+        print(f"  page {url}: {len(page_cards)} listings")
+        m = re.search(r'<link rel="next" href="([^"]+)"', page)
+        if not m or not page_cards:
+            break
+        nxt = htmllib.unescape(m.group(1))
+        url = nxt if nxt.startswith("http") else LISTINGS_URL + nxt
+    return cards
+
+
 def main():
-    page = fetch(LISTINGS_URL)
-    cards = parse_cards(page)
+    cards = parse_all_pages()
     print(f"Found {len(cards)} listings")
     if not cards:
         raise SystemExit("No listings found - site layout may have changed; keeping previous feed.")
