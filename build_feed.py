@@ -20,7 +20,8 @@ from datetime import datetime, timezone
 
 LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
 OUT_CSV = "feed.csv"
-MAX_IMAGES = 10
+MAX_IMAGES = 5
+DESCRIPTION_LIMIT = 900
 # Refuse to publish if the count falls below this share of the previous feed.
 SHRINK_LIMIT = 0.6
 HEADERS = {
@@ -59,8 +60,8 @@ def listing_urls():
     urls, seen, page_url = [], set(), LISTINGS_URL
     for _ in range(50):
         page = fetch(page_url)
-        found = [u for u in re.findall(
-            r'href="(https://www\.reevesrealty\.ca/listing/[^"]+)"', page)]
+        found = re.findall(
+            r'href="(https://www\.reevesrealty\.ca/listing/[^"]+)"', page)
         fresh = [u for u in dict.fromkeys(found) if u not in seen]
         seen.update(fresh)
         urls.extend(fresh)
@@ -113,15 +114,24 @@ def availability(status):
 
 
 def images(page):
-    """Photo URLs in the order the page lists them, largest size available."""
-    found = re.findall(r'(https://feed-images\.rewhosting\.com/[^\s"\\\']+?\.jpg)', page)
-    ordered = list(dict.fromkeys(u for u in found if "/XLarge/" in u))
+    """Distinct photos in page order.
+
+    Each photo is served at three sizes: -l (1024x767), -m (640x480) and
+    -s (320x240). Only -l clears Meta's 500x500 minimum, and the other two
+    are the same picture, so take -l only and keep one per photo number.
+    """
+    found = re.findall(
+        r'(https://feed-images\.rewhosting\.com/[^\s"\\\']+?-l\.jpg)', page)
 
     def seq(u):
         m = re.search(r'/(\d+)-[0-9a-f]{16,}', u)
         return int(m.group(1)) if m else 9999
 
-    return sorted(ordered, key=seq)[:MAX_IMAGES]
+    by_photo = {}
+    for u in found:
+        if "/XLarge/" in u:
+            by_photo.setdefault(seq(u), u)
+    return [by_photo[n] for n in sorted(by_photo)][:MAX_IMAGES]
 
 
 def scrape(url):
@@ -141,7 +151,11 @@ def scrape(url):
     desc = ""
     m = re.search(r'<meta name="description" content="([^"]*)"', raw)
     if m:
-        desc = re.sub(r"\s+", " ", htmllib.unescape(m.group(1))).strip()[:5000]
+        desc = re.sub(r"\s+", " ", htmllib.unescape(m.group(1))).strip()
+        if len(desc) > DESCRIPTION_LIMIT:
+            cut = desc[:DESCRIPTION_LIMIT]
+            stop = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
+            desc = (cut[:stop + 1] if stop > 200 else cut).strip()
 
     baths = field(page, "NumberOfBathrooms")
     try:
