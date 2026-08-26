@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Build a Meta (Facebook) catalog-compatible RSS feed from reevesrealty.ca listings."""
+"""Build a Meta Home Listings catalog feed (CSV) from reevesrealty.ca.
+
+Field names and allowed values follow Meta's catalog batch reference for
+item_type=HOME_LISTING (Advantage+ catalog ads for real estate).
+"""
+import csv
+import html as htmllib
 import re
 import sys
 import time
-import html as htmllib
 import urllib.request
-import urllib.error
-import xml.sax.saxutils as sx
 from datetime import datetime, timezone
 
 LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
+OUT_CSV = "feed.csv"
+MAX_IMAGES = 10
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -17,145 +22,198 @@ HEADERS = {
     "Accept-Language": "en-CA,en;q=0.9",
 }
 
+COLUMNS = [
+    "home_listing_id", "name", "description", "availability", "price", "url",
+    "latitude", "longitude",
+    "address.addr1", "address.city", "address.region", "address.country",
+    "address.postal_code",
+    "neighborhood", "property_type", "listing_type",
+    "num_beds", "num_baths", "year_built",
+] + [f"image[{i}].url" for i in range(MAX_IMAGES)]
+
 
 def fetch(url, attempts=3):
-    last_err = None
+    last = None
     for i in range(attempts):
         try:
             req = urllib.request.Request(url, headers=HEADERS)
             with urllib.request.urlopen(req, timeout=30) as r:
                 return r.read().decode("utf-8", errors="replace")
         except Exception as e:
-            last_err = e
-            code = getattr(e, "code", "")
-            print(f"  fetch attempt {i + 1}/{attempts} failed for {url}: {code} {e}")
+            last = e
+            print(f"  fetch attempt {i + 1}/{attempts} failed for {url}: {getattr(e, 'code', '')} {e}")
             time.sleep(5 * (i + 1))
-    raise last_err
+    raise last
 
 
-def parse_cards(page):
-    """Parse teaser cards from the listings page."""
-    cards = []
-    # Each card is an <a ... class="teaser teaser__card" ...> ... </a>
-    for m in re.finditer(
-        r'<a\s+href="(https://www\.reevesrealty\.ca/listing/[^"]+)"\s+class="teaser teaser__card"(.*?)</a>',
-        page, re.S,
-    ):
-        url, body = m.group(1), m.group(2)
-        def g(pat, default=""):
-            mm = re.search(pat, body, re.S)
-            return htmllib.unescape(mm.group(1)).strip() if mm else default
-
-        price = g(r'teaser__price__title">([^<]+)<')
-        address = g(r'teaser__address notranslate">\s*([^<]+?)\s*</h4>')
-        image = g(r'data-src="([^"]+)"')
-        mls = g(r'listing_id="([^"]+)"')
-        beds = g(r'<span>\s*(\d+)\s*Beds')
-        baths = g(r'<span>\s*(\d+)\s*Baths')
-        sqft = g(r'<span>([\d,]+) SqFt</span>')
-        ptype = g(r'listing_type="([^"]+)"')
-        if url and price and mls:
-            cards.append(dict(url=url, price=price, address=address, image=image,
-                              mls=mls, beds=beds, baths=baths, sqft=sqft, ptype=ptype))
-    return cards
-
-
-def get_description(url):
-    try:
-        page = fetch(url)
-        m = re.search(r'<meta name="description" content="([^"]*)"', page)
-        if m:
-            return htmllib.unescape(m.group(1)).strip()
-    except Exception as e:
-        print(f"  WARNING: could not get description from {url}: {e}")
-    return ""
-
-
-def build_xml(cards):
-    now = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
-    items = []
-    for c in cards:
-        price_num = re.sub(r"[^\d.]", "", c["price"]) or "0"
-        bits = []
-        if c["beds"]:
-            bits.append(f'{c["beds"]} Beds')
-        if c["baths"]:
-            bits.append(f'{c["baths"]} Baths')
-        if c["sqft"]:
-            bits.append(f'{c["sqft"]} SqFt')
-        title = f'{c["address"]} | {c["price"]}'
-        desc = c.get("desc") or " · ".join(bits) or c["address"]
-        # Meta recommends description max ~5000 chars; keep it tidy
-        desc = desc[:4900]
-        e = sx.escape
-        items.append(f"""    <item>
-      <g:id>{e(c["mls"])}</g:id>
-      <g:title>{e(title)}</g:title>
-      <g:description>{e(desc)}</g:description>
-      <g:link>{e(c["url"])}</g:link>
-      <g:image_link>{e(c["image"])}</g:image_link>
-      <g:brand>Reeves Realty</g:brand>
-      <g:condition>new</g:condition>
-      <g:availability>in stock</g:availability>
-      <g:price>{e(price_num)} CAD</g:price>
-      <g:product_type>{e(c["ptype"] or "Real Estate")}</g:product_type>
-      <g:custom_label_0>{e(c["beds"])} Beds</g:custom_label_0>
-      <g:custom_label_1>{e(c["baths"])} Baths</g:custom_label_1>
-      <g:custom_label_2>{e(c["sqft"])} SqFt</g:custom_label_2>
-    </item>""")
-    return f"""<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
-  <channel>
-    <title>Reeves Realty Current Listings</title>
-    <link>{LISTINGS_URL}</link>
-    <description>Current property listings from Reeves Realty</description>
-    <lastBuildDate>{now}</lastBuildDate>
-{chr(10).join(items)}
-  </channel>
-</rss>
-"""
-
-
-def parse_all_pages():
-    """Crawl listings.php and every paginated page (?p=2, ?p=3, ...) via rel=next."""
-    cards, seen = [], set()
-    url = LISTINGS_URL
-    for _ in range(50):  # safety cap on page count
-        page = fetch(url)
-        page_cards = [c for c in parse_cards(page) if c["mls"] not in seen]
-        for c in page_cards:
-            seen.add(c["mls"])
-        cards.extend(page_cards)
-        print(f"  page {url}: {len(page_cards)} listings")
+def listing_urls():
+    """Collect every listing URL, following the site's rel=next pagination."""
+    urls, seen, page_url = [], set(), LISTINGS_URL
+    for _ in range(50):
+        page = fetch(page_url)
+        found = [u for u in re.findall(
+            r'href="(https://www\.reevesrealty\.ca/listing/[^"]+)"', page)]
+        fresh = [u for u in dict.fromkeys(found) if u not in seen]
+        seen.update(fresh)
+        urls.extend(fresh)
+        print(f"  {page_url}: {len(fresh)} listings")
         m = re.search(r'<link rel="next" href="([^"]+)"', page)
-        if not m or not page_cards:
+        if not m or not fresh:
             break
         nxt = htmllib.unescape(m.group(1))
-        url = nxt if nxt.startswith("http") else LISTINGS_URL + nxt
+        page_url = nxt if nxt.startswith("http") else LISTINGS_URL + nxt
         time.sleep(1)
-    return cards
+    return urls
+
+
+def field(page, key):
+    """Pull a value out of the listing page's embedded JSON."""
+    m = re.search(r'"' + key + r'":\s*"((?:[^"\\]|\\.)*)"', page)
+    if not m:
+        return ""
+    return m.group(1).replace('\\"', '"').replace("\\/", "/").strip()
+
+
+def property_type(sub_type, listing_type):
+    """Map the site's property sub-type to Meta's allowed values."""
+    s = f"{sub_type} {listing_type}".lower()
+    if "apartment" in s:
+        return "apartment"
+    if "row" in s or "townhouse" in s:
+        return "townhouse"
+    if "land" in s or "lot" in s:
+        return "land"
+    if "mobile" in s or "manufactured" in s:
+        return "manufactured"
+    if "condo" in s:
+        return "condo"
+    if "detached" in s or "house" in s or "residential" in s:
+        return "house"
+    return "other"
+
+
+def availability(status):
+    """Map the site's listing status to Meta's allowed values."""
+    s = status.lower()
+    if "pending" in s:
+        return "sale_pending"
+    if "sold" in s:
+        return "recently_sold"
+    if "expired" in s or "cancel" in s or "withdraw" in s or "terminat" in s:
+        return "off_market"
+    return "for_sale"
+
+
+def images(page):
+    """Photo URLs in the order the page lists them, largest size available."""
+    found = re.findall(r'(https://feed-images\.rewhosting\.com/[^\s"\\\']+?\.jpg)', page)
+    ordered = list(dict.fromkeys(u for u in found if "/XLarge/" in u))
+
+    def seq(u):
+        m = re.search(r'/(\d+)-[0-9a-f]{16,}', u)
+        return int(m.group(1)) if m else 9999
+
+    return sorted(ordered, key=seq)[:MAX_IMAGES]
+
+
+def scrape(url):
+    raw = fetch(url)
+    page = htmllib.unescape(raw)
+
+    mls = field(page, "ListingMLS")
+    addr = field(page, "Address")
+    city = field(page, "AddressCity")
+    price = re.sub(r"[^\d]", "", field(page, "ListingPrice"))
+    photos = images(page)
+
+    if not (mls and addr and price and photos):
+        print(f"  SKIPPED (missing id/address/price/photo): {url}")
+        return None
+
+    desc = ""
+    m = re.search(r'<meta name="description" content="([^"]*)"', raw)
+    if m:
+        desc = re.sub(r"\s+", " ", htmllib.unescape(m.group(1))).strip()[:5000]
+
+    baths = field(page, "NumberOfBathrooms")
+    try:
+        baths = int(float(baths)) if baths else ""
+    except ValueError:
+        baths = ""
+    beds = re.sub(r"[^\d]", "", field(page, "NumberOfBedrooms"))
+    year = re.sub(r"[^\d]", "", field(page, "YearBuilt"))[:4]
+
+    row = {
+        "home_listing_id": mls,
+        "name": f"{addr}, {city}" if city else addr,
+        "description": desc or f"{addr}, {city}",
+        "availability": availability(field(page, "ListingStatus")),
+        "price": f"{price} CAD",
+        "url": url,
+        "latitude": field(page, "Latitude"),
+        "longitude": field(page, "Longitude"),
+        "address.addr1": addr,
+        "address.city": city,
+        "address.region": field(page, "AddressState"),
+        "address.country": "CA",
+        "address.postal_code": field(page, "AddressZipCode"),
+        "neighborhood": field(page, "AddressSubdivision"),
+        "property_type": property_type(field(page, "ListingSubType"),
+                                       field(page, "ListingType")),
+        "listing_type": "for_sale_by_agent",
+        "num_beds": beds,
+        "num_baths": baths,
+        "year_built": year,
+    }
+    for i, u in enumerate(photos):
+        row[f"image[{i}].url"] = u
+    return row
 
 
 def main():
     try:
-        cards = parse_all_pages()
+        urls = listing_urls()
     except Exception as e:
-        print(f"ERROR: could not fetch the listings page: {e}")
-        print("The previous feed.xml is kept unchanged.")
+        print(f"ERROR: could not fetch the listings pages: {e}")
+        print("The previous feed is kept unchanged.")
         sys.exit(1)
-    print(f"Found {len(cards)} listings")
-    if not cards:
-        print("ERROR: page fetched but zero listings parsed - site layout may have changed.")
-        print("The previous feed.xml is kept unchanged.")
+
+    print(f"Found {len(urls)} listing pages")
+    if not urls:
+        print("ERROR: zero listings found - site layout may have changed.")
+        print("The previous feed is kept unchanged.")
         sys.exit(1)
-    for c in cards:
-        c["desc"] = get_description(c["url"])
-        print(f'  {c["mls"]}: {c["address"]} {c["price"]} desc={len(c["desc"])} chars')
+
+    rows = []
+    for u in urls:
+        try:
+            row = scrape(u)
+        except Exception as e:
+            print(f"  SKIPPED ({e}): {u}")
+            row = None
+        if row:
+            rows.append(row)
+            print(f"  {row['home_listing_id']}: {row['name']} {row['price']} "
+                  f"{row['property_type']} beds={row['num_beds']} "
+                  f"photos={sum(1 for k in row if k.startswith('image'))}")
         time.sleep(0.5)
-    xml = build_xml(cards)
-    with open("feed.xml", "w", encoding="utf-8") as f:
-        f.write(xml)
-    print("Wrote feed.xml")
+
+    if not rows:
+        print("ERROR: no listings could be parsed. Previous feed kept unchanged.")
+        sys.exit(1)
+    if len(rows) < len(urls) * 0.8:
+        print(f"ERROR: only {len(rows)} of {len(urls)} listings parsed. "
+              "Previous feed kept unchanged.")
+        sys.exit(1)
+
+    with open(OUT_CSV, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=COLUMNS, extrasaction="ignore")
+        w.writeheader()
+        for r in rows:
+            w.writerow({c: r.get(c, "") for c in COLUMNS})
+
+    print(f"Wrote {OUT_CSV} with {len(rows)} listings at "
+          f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}")
 
 
 if __name__ == "__main__":
