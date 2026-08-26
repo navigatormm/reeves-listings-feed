@@ -3,9 +3,15 @@
 
 Field names and allowed values follow Meta's catalog batch reference for
 item_type=HOME_LISTING (Advantage+ catalog ads for real estate).
+
+The feed is a full replacement each run: a listing that has left the site is
+simply absent from the new file. Meta deletes absent items when the data
+source uses a Replace schedule, so this script refuses to publish a feed that
+has shrunk implausibly - see SHRINK_LIMIT.
 """
 import csv
 import html as htmllib
+import os
 import re
 import sys
 import time
@@ -15,6 +21,8 @@ from datetime import datetime, timezone
 LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
 OUT_CSV = "feed.csv"
 MAX_IMAGES = 10
+# Refuse to publish if the count falls below this share of the previous feed.
+SHRINK_LIMIT = 0.6
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -170,6 +178,15 @@ def scrape(url):
     return row
 
 
+def previous_count(path):
+    """Listings in the currently published feed, or None if there isn't one."""
+    try:
+        with open(path, encoding="utf-8", newline="") as f:
+            return max(0, sum(1 for _ in csv.reader(f)) - 1)
+    except FileNotFoundError:
+        return None
+
+
 def main():
     try:
         urls = listing_urls()
@@ -206,13 +223,25 @@ def main():
               "Previous feed kept unchanged.")
         sys.exit(1)
 
+    previous = previous_count(OUT_CSV)
+    if (previous and previous >= 5 and len(rows) < previous * SHRINK_LIMIT
+            and not os.environ.get("ALLOW_SHRINK")):
+        print(f"ERROR: listing count fell from {previous} to {len(rows)}. "
+              "That is a bigger drop than listings selling would explain, so it "
+              "most likely means the site served a partial page. Publishing this "
+              "feed would delete those listings from the Meta catalog, so the "
+              "previous feed is kept unchanged. If the drop is genuine, re-run "
+              "with ALLOW_SHRINK=1.")
+        sys.exit(1)
+
     with open(OUT_CSV, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS, extrasaction="ignore")
         w.writeheader()
         for r in rows:
             w.writerow({c: r.get(c, "") for c in COLUMNS})
 
-    print(f"Wrote {OUT_CSV} with {len(rows)} listings at "
+    was = f" (previous feed had {previous})" if previous is not None else ""
+    print(f"Wrote {OUT_CSV} with {len(rows)} listings{was} at "
           f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}")
 
 
