@@ -31,14 +31,34 @@ HEADERS = {
     "Accept-Language": "en-CA,en;q=0.9",
 }
 
+# Nested and repeated fields use Meta's JSON-path column convention:
+# address.<part> for the address object, neighborhood[0] because neighborhood
+# is an array of strings, image[N].url for the photo list.
 COLUMNS = [
     "home_listing_id", "name", "description", "availability", "price", "url",
     "latitude", "longitude",
     "address.addr1", "address.city", "address.region", "address.country",
     "address.postal_code",
-    "neighborhood", "property_type", "listing_type",
+    "neighborhood[0]", "property_type", "listing_type",
     "num_beds", "num_baths", "year_built",
 ] + [f"image[{i}].url" for i in range(MAX_IMAGES)]
+
+
+PROVINCES = {
+    "Alberta": "AB", "British Columbia": "BC", "Manitoba": "MB",
+    "New Brunswick": "NB", "Newfoundland and Labrador": "NL",
+    "Northwest Territories": "NT", "Nova Scotia": "NS", "Nunavut": "NU",
+    "Ontario": "ON", "Prince Edward Island": "PE", "Quebec": "QC",
+    "Saskatchewan": "SK", "Yukon": "YT",
+}
+
+
+def coord(value):
+    """Six decimal places is ~0.1m; the site pads to twelve."""
+    try:
+        return f"{float(value):.6f}"
+    except (TypeError, ValueError):
+        return ""
 
 
 def fetch(url, attempts=3):
@@ -172,14 +192,15 @@ def scrape(url):
         "availability": availability(field(page, "ListingStatus")),
         "price": f"{price} CAD",
         "url": url,
-        "latitude": field(page, "Latitude"),
-        "longitude": field(page, "Longitude"),
+        "latitude": coord(field(page, "Latitude")),
+        "longitude": coord(field(page, "Longitude")),
         "address.addr1": addr,
         "address.city": city,
-        "address.region": field(page, "AddressState"),
+        "address.region": PROVINCES.get(field(page, "AddressState"),
+                                        field(page, "AddressState")),
         "address.country": "CA",
         "address.postal_code": field(page, "AddressZipCode"),
-        "neighborhood": field(page, "AddressSubdivision"),
+        "neighborhood[0]": field(page, "AddressSubdivision"),
         "property_type": property_type(field(page, "ListingSubType"),
                                        field(page, "ListingType")),
         "listing_type": "for_sale_by_agent",
