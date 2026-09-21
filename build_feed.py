@@ -4,16 +4,19 @@
 Field names and allowed values follow Meta's catalog batch reference for
 item_type=HOME_LISTING (Advantage+ catalog ads for real estate).
 
-Listing data is read from reevesrealty.ca. The click-through link for each
-home comes from listing_urls.csv instead, so ads land on the Lofty portal.
-Links for departed listings are pruned automatically; new ones must be added
-by hand, because a Lofty link carries an internal id that exists only on
-their site and cannot be derived from the MLS number or the address.
+Listing data comes from reevesrealty.ca. The click-through link for each home
+comes from listing_urls.csv, which this script maintains as a worklist: every
+live listing gets a row, new listings arrive with a blank url, and listings
+that have left are dropped. Filling in a url is the one manual step, because a
+Lofty link carries an internal id that exists only on their site and cannot be
+derived from the MLS number or the address.
 
-The feed is a full replacement each run: a listing that has left the site is
-simply absent from the new file. Meta deletes absent items when the data
-source uses a Replace schedule, so this script refuses to publish a feed that
-has shrunk implausibly - see SHRINK_LIMIT.
+A listing with no url is held out of the feed entirely, so no ad can ever run
+without a destination.
+
+The feed is a full replacement each run. Meta deletes absent items when the
+data source uses a Replace schedule, so this script refuses to publish a feed
+that has shrunk implausibly - see SHRINK_LIMIT.
 """
 import csv
 import html as htmllib
@@ -28,7 +31,6 @@ LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
 OUT_CSV = "feed.csv"
 # Destination links live in their own file so they survive every rebuild.
 URL_MAP_CSV = "listing_urls.csv"
-FALLBACK_URL = "https://erinreeves.expportal.com/featured-listing"
 MAX_IMAGES = 5
 DESCRIPTION_LIMIT = 900
 # Refuse to publish if the count falls below this share of the previous feed.
@@ -208,7 +210,7 @@ def scrape(url, url_map):
         "description": desc or f"{addr}, {city}",
         "availability": availability(field(page, "ListingStatus")),
         "price": f"{price} CAD",
-        "url": url_map.get(mls, FALLBACK_URL),
+        "url": url_map.get(mls, ""),
         "latitude": coord(field(page, "Latitude")),
         "longitude": coord(field(page, "Longitude")),
         "address.addr1": addr,
@@ -231,35 +233,53 @@ def scrape(url, url_map):
 
 
 def load_url_map(path=URL_MAP_CSV):
-    """home_listing_id -> destination URL."""
+    """home_listing_id -> destination URL. A blank url means 'not filled in yet'."""
     try:
         with open(path, encoding="utf-8", newline="") as f:
-            return {r["home_listing_id"].strip(): r["url"].strip()
-                    for r in csv.DictReader(f)
-                    if r.get("home_listing_id") and r.get("url")}
+            out = {}
+            for r in csv.DictReader(f):
+                mls = (r.get("home_listing_id") or "").strip()
+                url = (r.get("url") or "").strip()
+                if not mls:
+                    continue
+                if url and not url.startswith("http"):
+                    print(f"  WARNING: {mls} has a url that is not a link, ignoring: {url!r}")
+                    url = ""
+                out[mls] = url
+            return out
     except FileNotFoundError:
-        print(f"WARNING: {path} not found; every listing will use the fallback link.")
+        print(f"WARNING: {path} not found; no listing will have a destination link.")
         return {}
 
 
-def prune_url_map(url_map, live_ids, path=URL_MAP_CSV):
-    """Drop links for listings that have left the site.
+def write_url_map(rows, url_map, path=URL_MAP_CSV):
+    """Rewrite the worklist: one row per live listing, blank url when unknown.
 
-    Only called after the feed has passed its safety checks, so a partial
-    crawl can never strip the file. Additions cannot be automated: a Lofty
-    link carries an internal id that exists only on their site.
+    Adds rows for new listings, drops rows for listings that have left, and
+    preserves every url already filled in. Listings still needing a url are
+    written first so they are easy to spot. Only called after the feed has
+    passed its safety checks, so a partial crawl cannot disturb the file.
     """
-    stale = sorted(set(url_map) - live_ids)
-    if not stale:
-        return
-    kept = {k: v for k, v in url_map.items() if k in live_ids}
+    live = [(r["home_listing_id"], r["name"]) for r in rows]
+    live_ids = {mls for mls, _ in live}
+    added = sorted(mls for mls in live_ids if mls not in url_map)
+    removed = sorted(set(url_map) - live_ids)
+
+    needing = sorted((m, n) for m, n in live if not url_map.get(m))
+    filled = sorted((m, n) for m, n in live if url_map.get(m))
     with open(path, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["home_listing_id", "url"])
-        for k in sorted(kept):
-            w.writerow([k, kept[k]])
-    print(f"Removed {len(stale)} destination link(s) for listings no longer "
-          f"on the site: {', '.join(stale)}")
+        w.writerow(["home_listing_id", "address", "url"])
+        for mls, name in needing + filled:
+            w.writerow([mls, name, url_map.get(mls, "")])
+
+    if added:
+        print(f"Added {len(added)} new listing(s) to {path} awaiting a url: "
+              f"{', '.join(added)}")
+    if removed:
+        print(f"Removed {len(removed)} listing(s) from {path} that have left "
+              f"the site: {', '.join(removed)}")
+    return needing
 
 
 def previous_count(path):
@@ -286,7 +306,7 @@ def main():
         sys.exit(1)
 
     url_map = load_url_map()
-    print(f"Destination links on file: {len(url_map)}")
+    print(f"Destination links on file: {sum(1 for v in url_map.values() if v)}")
 
     rows = []
     for u in urls:
@@ -311,37 +331,45 @@ def main():
         sys.exit(1)
 
     previous = previous_count(OUT_CSV)
-    if (previous and previous >= 5 and len(rows) < previous * SHRINK_LIMIT
+    publish = [r for r in rows if r["url"]]
+
+    if (previous and previous >= 5 and len(publish) < previous * SHRINK_LIMIT
             and not os.environ.get("ALLOW_SHRINK")):
-        print(f"ERROR: listing count fell from {previous} to {len(rows)}. "
-              "That is a bigger drop than listings selling would explain, so it "
-              "most likely means the site served a partial page. Publishing this "
-              "feed would delete those listings from the Meta catalog, so the "
+        print(f"ERROR: publishable listing count fell from {previous} to "
+              f"{len(publish)}. That is a bigger drop than listings selling "
+              "would explain, so it most likely means the site served a partial "
+              "page or destination links went missing. Publishing this feed "
+              "would delete those listings from the Meta catalog, so the "
               "previous feed is kept unchanged. If the drop is genuine, re-run "
               "with ALLOW_SHRINK=1.")
+        sys.exit(1)
+
+    needing = write_url_map(rows, url_map)
+
+    # A listing without a destination link is held back entirely, so no ad can
+    # run without one.
+    if not publish:
+        print("ERROR: no listing has a destination link, so the feed would be "
+              f"empty. Fill in the url column in {URL_MAP_CSV}. Previous feed "
+              "kept unchanged.")
         sys.exit(1)
 
     with open(OUT_CSV, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS, extrasaction="ignore")
         w.writeheader()
-        for r in rows:
+        for r in publish:
             w.writerow({c: r.get(c, "") for c in COLUMNS})
 
-    prune_url_map(url_map, {r["home_listing_id"] for r in rows})
-
-    unmapped = [r["home_listing_id"] for r in rows
-                if r["url"] == FALLBACK_URL]
-    if unmapped:
-        print(f"\nNOTE: {len(unmapped)} listing(s) have no destination link and fall back "
-              f"to the featured-listings page. Add them to {URL_MAP_CSV}:")
-        for r in rows:
-            if r["home_listing_id"] in unmapped:
-                print(f"  {r['home_listing_id']},<lofty url>   ({r['name']})")
+    if needing:
+        print(f"\nNOTE: {len(needing)} listing(s) are held out of the feed until a "
+              f"url is added in {URL_MAP_CSV}:")
+        for mls, name in needing:
+            print(f"  {mls}   ({name})")
     else:
-        print("Every listing has its own destination link.")
+        print("Every live listing has a destination link.")
 
     was = f" (previous feed had {previous})" if previous is not None else ""
-    print(f"Wrote {OUT_CSV} with {len(rows)} listings{was} at "
+    print(f"Wrote {OUT_CSV} with {len(publish)} of {len(rows)} listings{was} at "
           f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}")
 
 
