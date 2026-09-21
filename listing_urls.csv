@@ -1,40 +1,40 @@
-home_listing_id,url
-A2305515,https://erinreeves.expportal.com/listing-detail/1185810875/83-Dawson-Wharf-MT-Chestermere-AB
-A2305519,https://erinreeves.expportal.com/listing-detail/1185808126/271-Dawson-Wharf-Rise-Chestermere-AB
-A2305524,https://erinreeves.expportal.com/listing-detail/1188641037/27-Chelsea-Port-Link-Chestermere-AB
-A2324246,https://erinreeves.expportal.com/listing-detail/1184873854/177-Mitchell-RD-NW-Calgary-AB
-A2324334,https://erinreeves.expportal.com/listing-detail/1184874639/174-Mitchell-RD-NW-Calgary-AB
-A2325233,https://erinreeves.expportal.com/listing-detail/1185017546/1513-26-AVE-SW-308-Calgary-AB
-A2326992,https://erinreeves.expportal.com/listing-detail/1186124992/2110-15-ST-SW-7-Calgary-AB
-A2329305,https://erinreeves.expportal.com/listing-detail/1185943150/2425-90-AVE-SW-207-Calgary-AB
-A2329509,https://erinreeves.expportal.com/listing-detail/1185947702/63-Annette-Rise-NW-Calgary-AB
-A2330807,https://erinreeves.expportal.com/listing-detail/1186806594/541-Bridgeport-ST-Chestermere-AB
-A2330809,https://erinreeves.expportal.com/listing-detail/1186807274/545-Bridgeport-ST-Chestermere-AB
-A2331126,https://erinreeves.expportal.com/listing-detail/1186351457/114-Chapalina-TER-SE-Calgary-AB
-A2331456,https://erinreeves.expportal.com/listing-detail/1186485941/305-Precedence-VW-Cochrane-AB
-A2332528,https://erinreeves.expportal.com/listing-detail/1186650303/40-Chaparral-Ridge-TER-SE-Calgary-AB
-A2332571,https://erinreeves.expportal.com/listing-detail/1186673902/525-River-Heights-DR-1905-Cochrane-AB
-A2332672,https://erinreeves.expportal.com/listing-detail/1187357192/525-River-Heights-DR-804-Cochrane-AB
-A2333182,https://erinreeves.expportal.com/listing-detail/1187164966/34-Seton-RD-SE-Calgary-AB
-A2333569,https://erinreeves.expportal.com/listing-detail/1188200251/119-Marquis-GRV-SE-Calgary-AB
-A2336469,https://erinreeves.expportal.com/listing-detail/1187486690/228-Cornerbrook-RD-NE-Calgary-AB
-A2336517,https://erinreeves.expportal.com/listing-detail/1187561133/1334-14-AVE-SW-505-Calgary-AB
-A2337511,https://erinreeves.expportal.com/listing-detail/1187789948/220-Marina-CV-SE-Calgary-AB
-A2338054,https://erinreeves.expportal.com/listing-detail/1189014536/149-Royal-Oak-Bay-NW-Calgary-AB
-A2338132,https://erinreeves.expportal.com/listing-detail/1187777117/8235-8-AVE-SW-414-Calgary-AB
-A2338428,https://erinreeves.expportal.com/listing-detail/1188867052/2061-Vantage-WAY-SW-Airdrie-AB
-A2338438,https://erinreeves.expportal.com/listing-detail/1188865440/2057-Vantage-WAY-SW-Airdrie-AB
-A2338667,https://erinreeves.expportal.com/listing-detail/1188127338/62-Southborough-CRES-Cochrane-AB
-A2339304,https://erinreeves.expportal.com/listing-detail/1187992161/109-Creekview-MNR-SW-Calgary-AB
-A2340009,https://erinreeves.expportal.com/listing-detail/1188143037/78-Heartwood-Villas-SE-Calgary-AB
-A2340629,https://erinreeves.expportal.com/listing-detail/1188284753/4-Sage-Hill-Rise-NW-801-Calgary-AB
-A2340644,https://erinreeves.expportal.com/listing-detail/1188284751/4-Sage-Hill-Rise-NW-802-Calgary-AB
-A2341366,https://erinreeves.expportal.com/listing-detail/1188568358/241-Elgin-GDNS-SE-Calgary-AB
-A2341408,https://erinreeves.expportal.com/listing-detail/1188637976/410-11-AVE-NE-Calgary-AB
-A2341773,https://erinreeves.expportal.com/listing-detail/1188557594/285-Chelsea-CT-54-Chestermere-AB
-A2341813,https://erinreeves.expportal.com/listing-detail/1189493945/291-Legacy-MT-SE-Calgary-AB
-A2342560,https://erinreeves.expportal.com/listing-detail/1189110073/4350-Seton-DR-SE-411-Calgary-AB
-A2343513,https://erinreeves.expportal.com/listing-detail/1189047517/85-Walgrove-Common-SE-Calgary-AB
-A2344103,https://erinreeves.expportal.com/listing-detail/1189476632/117-Mahogany-PL-SE-Calgary-AB
-A2344411,https://erinreeves.expportal.com/listing-detail/1189127685/659-Chelsea-Pier-RUN-Chestermere-AB
-A2346327,https://erinreeves.expportal.com/listing-detail/1189558938/116-Quartz-CRES-Cochrane-AB
+home_listing_id,address,url
+A2305515,"83 Dawson Wharf Mount, Chestermere",https://erinreeves.expportal.com/listing-detail/1185810875/83-Dawson-Wharf-MT-Chestermere-AB
+A2305519,"271 Dawson Wharf Rise, Chestermere",https://erinreeves.expportal.com/listing-detail/1185808126/271-Dawson-Wharf-Rise-Chestermere-AB
+A2305524,"27 Chelsea Port Link, Chestermere",https://erinreeves.expportal.com/listing-detail/1188641037/27-Chelsea-Port-Link-Chestermere-AB
+A2324246,"177 Mitchell Road Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1184873854/177-Mitchell-RD-NW-Calgary-AB
+A2324334,"174 Mitchell Road Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1184874639/174-Mitchell-RD-NW-Calgary-AB
+A2325233,"308 1513 26 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1185017546/1513-26-AVE-SW-308-Calgary-AB
+A2326992,"7 2110 15 Street Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1186124992/2110-15-ST-SW-7-Calgary-AB
+A2329305,"207 2425 90 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1185943150/2425-90-AVE-SW-207-Calgary-AB
+A2329509,"63 Annette Rise Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1185947702/63-Annette-Rise-NW-Calgary-AB
+A2330807,"541 Bridgeport Street, Chestermere",https://erinreeves.expportal.com/listing-detail/1186806594/541-Bridgeport-ST-Chestermere-AB
+A2330809,"545 Bridgeport Street, Chestermere",https://erinreeves.expportal.com/listing-detail/1186807274/545-Bridgeport-ST-Chestermere-AB
+A2331126,"114 Chapalina Terrace Se, Calgary",https://erinreeves.expportal.com/listing-detail/1186351457/114-Chapalina-TER-SE-Calgary-AB
+A2331456,"305 Precedence View, Cochrane",https://erinreeves.expportal.com/listing-detail/1186485941/305-Precedence-VW-Cochrane-AB
+A2332528,"40 Chaparral Ridge Terrace Se, Calgary",https://erinreeves.expportal.com/listing-detail/1186650303/40-Chaparral-Ridge-TER-SE-Calgary-AB
+A2332571,"1905 525 River Heights Drive, Cochrane",https://erinreeves.expportal.com/listing-detail/1186673902/525-River-Heights-DR-1905-Cochrane-AB
+A2332672,"804 525 River Heights Drive, Cochrane",https://erinreeves.expportal.com/listing-detail/1187357192/525-River-Heights-DR-804-Cochrane-AB
+A2333182,"34 Seton Road Se, Calgary",https://erinreeves.expportal.com/listing-detail/1187164966/34-Seton-RD-SE-Calgary-AB
+A2333569,"119 Marquis Grove Se, Calgary",https://erinreeves.expportal.com/listing-detail/1188200251/119-Marquis-GRV-SE-Calgary-AB
+A2336469,"228 Cornerbrook Road Ne, Calgary",https://erinreeves.expportal.com/listing-detail/1187486690/228-Cornerbrook-RD-NE-Calgary-AB
+A2336517,"505 1334 14 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1187561133/1334-14-AVE-SW-505-Calgary-AB
+A2337511,"220 Marina Cove Se, Calgary",https://erinreeves.expportal.com/listing-detail/1187789948/220-Marina-CV-SE-Calgary-AB
+A2338054,"149 Royal Oak Bay Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1189014536/149-Royal-Oak-Bay-NW-Calgary-AB
+A2338132,"414 8235 8 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1187777117/8235-8-AVE-SW-414-Calgary-AB
+A2338428,"2061 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1188867052/2061-Vantage-WAY-SW-Airdrie-AB
+A2338438,"2057 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1188865440/2057-Vantage-WAY-SW-Airdrie-AB
+A2338667,"62 Southborough Crescent, Cochrane",https://erinreeves.expportal.com/listing-detail/1188127338/62-Southborough-CRES-Cochrane-AB
+A2339304,"109 Creekview Manor Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1187992161/109-Creekview-MNR-SW-Calgary-AB
+A2340009,"78 Heartwood Villas Se, Calgary",https://erinreeves.expportal.com/listing-detail/1188143037/78-Heartwood-Villas-SE-Calgary-AB
+A2340629,"801 4 Sage Hill Rise Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1188284753/4-Sage-Hill-Rise-NW-801-Calgary-AB
+A2340644,"802 4 Sage Hill Rise Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1188284751/4-Sage-Hill-Rise-NW-802-Calgary-AB
+A2341366,"241 Elgin Gardens Se, Calgary",https://erinreeves.expportal.com/listing-detail/1188568358/241-Elgin-GDNS-SE-Calgary-AB
+A2341408,"410 11 Avenue Ne, Calgary",https://erinreeves.expportal.com/listing-detail/1188637976/410-11-AVE-NE-Calgary-AB
+A2341773,"54 285 Chelsea Court, Chestermere",https://erinreeves.expportal.com/listing-detail/1188557594/285-Chelsea-CT-54-Chestermere-AB
+A2341813,"291 Legacy Mount Se, Calgary",https://erinreeves.expportal.com/listing-detail/1189493945/291-Legacy-MT-SE-Calgary-AB
+A2342560,"411 4350 Seton Drive Se, Calgary",https://erinreeves.expportal.com/listing-detail/1189110073/4350-Seton-DR-SE-411-Calgary-AB
+A2343513,"85 Walgrove Common Se, Calgary",https://erinreeves.expportal.com/listing-detail/1189047517/85-Walgrove-Common-SE-Calgary-AB
+A2344103,"117 Mahogany Place Se, Calgary",https://erinreeves.expportal.com/listing-detail/1189476632/117-Mahogany-PL-SE-Calgary-AB
+A2344411,"659 Chelsea Pier Run, Chestermere",https://erinreeves.expportal.com/listing-detail/1189127685/659-Chelsea-Pier-RUN-Chestermere-AB
+A2346327,"116 Quartz Crescent, Cochrane",https://erinreeves.expportal.com/listing-detail/1189558938/116-Quartz-CRES-Cochrane-AB
