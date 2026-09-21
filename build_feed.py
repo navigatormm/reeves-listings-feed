@@ -32,6 +32,8 @@ MAX_IMAGES = 5
 DESCRIPTION_LIMIT = 900
 # Refuse to publish if the count falls below this share of the previous feed.
 SHRINK_LIMIT = 0.6
+# Seconds between property-page requests. The source rate-limits below ~1s.
+PAGE_DELAY = 1.5
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -69,7 +71,7 @@ def coord(value):
         return ""
 
 
-def fetch(url, attempts=3):
+def fetch(url, attempts=4):
     last = None
     for i in range(attempts):
         try:
@@ -78,8 +80,14 @@ def fetch(url, attempts=3):
                 return r.read().decode("utf-8", errors="replace")
         except Exception as e:
             last = e
-            print(f"  fetch attempt {i + 1}/{attempts} failed for {url}: {getattr(e, 'code', '')} {e}")
-            time.sleep(5 * (i + 1))
+            code = getattr(e, "code", None)
+            # 429 means we are asking too fast, so back off hard rather than
+            # burn the attempt. Anything else is usually a blip.
+            wait = 45 * (i + 1) if code == 429 else 5 * (i + 1)
+            print(f"  fetch attempt {i + 1}/{attempts} failed for {url}: "
+                  f"{code or ''} {e}; waiting {wait}s")
+            if i < attempts - 1:
+                time.sleep(wait)
     raise last
 
 
@@ -271,7 +279,7 @@ def main():
             print(f"  {row['home_listing_id']}: {row['name']} {row['price']} "
                   f"{row['property_type']} beds={row['num_beds']} "
                   f"photos={sum(1 for k in row if k.startswith('image'))}")
-        time.sleep(0.5)
+        time.sleep(PAGE_DELAY)
 
     if not rows:
         print("ERROR: no listings could be parsed. Previous feed kept unchanged.")
