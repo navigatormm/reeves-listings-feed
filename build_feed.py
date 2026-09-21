@@ -4,6 +4,10 @@
 Field names and allowed values follow Meta's catalog batch reference for
 item_type=HOME_LISTING (Advantage+ catalog ads for real estate).
 
+Listing data is read from reevesrealty.ca. The click-through link for each
+home comes from listing_urls.csv instead, so ads land on the Lofty portal.
+That file is maintained by hand and is never written by this script.
+
 The feed is a full replacement each run: a listing that has left the site is
 simply absent from the new file. Meta deletes absent items when the data
 source uses a Replace schedule, so this script refuses to publish a feed that
@@ -20,6 +24,10 @@ from datetime import datetime, timezone
 
 LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
 OUT_CSV = "feed.csv"
+# Destination links live in their own file so they survive every rebuild.
+# The crawler only ever reads it; add a row when a new listing appears.
+URL_MAP_CSV = "listing_urls.csv"
+FALLBACK_URL = "https://erinreeves.expportal.com/featured-listing"
 MAX_IMAGES = 5
 DESCRIPTION_LIMIT = 900
 # Refuse to publish if the count falls below this share of the previous feed.
@@ -154,7 +162,7 @@ def images(page):
     return [by_photo[n] for n in sorted(by_photo)][:MAX_IMAGES]
 
 
-def scrape(url):
+def scrape(url, url_map):
     raw = fetch(url)
     page = htmllib.unescape(raw)
 
@@ -191,7 +199,7 @@ def scrape(url):
         "description": desc or f"{addr}, {city}",
         "availability": availability(field(page, "ListingStatus")),
         "price": f"{price} CAD",
-        "url": url,
+        "url": url_map.get(mls, FALLBACK_URL),
         "latitude": coord(field(page, "Latitude")),
         "longitude": coord(field(page, "Longitude")),
         "address.addr1": addr,
@@ -211,6 +219,18 @@ def scrape(url):
     for i, u in enumerate(photos):
         row[f"image[{i}].url"] = u
     return row
+
+
+def load_url_map(path=URL_MAP_CSV):
+    """home_listing_id -> destination URL, maintained by hand, never written."""
+    try:
+        with open(path, encoding="utf-8", newline="") as f:
+            return {r["home_listing_id"].strip(): r["url"].strip()
+                    for r in csv.DictReader(f)
+                    if r.get("home_listing_id") and r.get("url")}
+    except FileNotFoundError:
+        print(f"WARNING: {path} not found; every listing will use the fallback link.")
+        return {}
 
 
 def previous_count(path):
@@ -236,10 +256,13 @@ def main():
         print("The previous feed is kept unchanged.")
         sys.exit(1)
 
+    url_map = load_url_map()
+    print(f"Destination links on file: {len(url_map)}")
+
     rows = []
     for u in urls:
         try:
-            row = scrape(u)
+            row = scrape(u, url_map)
         except Exception as e:
             print(f"  SKIPPED ({e}): {u}")
             row = None
@@ -274,6 +297,17 @@ def main():
         w.writeheader()
         for r in rows:
             w.writerow({c: r.get(c, "") for c in COLUMNS})
+
+    unmapped = [r["home_listing_id"] for r in rows
+                if r["url"] == FALLBACK_URL]
+    if unmapped:
+        print(f"\nNOTE: {len(unmapped)} listing(s) have no destination link and fall back "
+              f"to the featured-listings page. Add them to {URL_MAP_CSV}:")
+        for r in rows:
+            if r["home_listing_id"] in unmapped:
+                print(f"  {r['home_listing_id']},<lofty url>   ({r['name']})")
+    else:
+        print("Every listing has its own destination link.")
 
     was = f" (previous feed had {previous})" if previous is not None else ""
     print(f"Wrote {OUT_CSV} with {len(rows)} listings{was} at "
