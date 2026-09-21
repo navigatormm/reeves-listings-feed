@@ -6,7 +6,9 @@ item_type=HOME_LISTING (Advantage+ catalog ads for real estate).
 
 Listing data is read from reevesrealty.ca. The click-through link for each
 home comes from listing_urls.csv instead, so ads land on the Lofty portal.
-That file is maintained by hand and is never written by this script.
+Links for departed listings are pruned automatically; new ones must be added
+by hand, because a Lofty link carries an internal id that exists only on
+their site and cannot be derived from the MLS number or the address.
 
 The feed is a full replacement each run: a listing that has left the site is
 simply absent from the new file. Meta deletes absent items when the data
@@ -25,7 +27,6 @@ from datetime import datetime, timezone
 LISTINGS_URL = "https://www.reevesrealty.ca/listings.php"
 OUT_CSV = "feed.csv"
 # Destination links live in their own file so they survive every rebuild.
-# The crawler only ever reads it; add a row when a new listing appears.
 URL_MAP_CSV = "listing_urls.csv"
 FALLBACK_URL = "https://erinreeves.expportal.com/featured-listing"
 MAX_IMAGES = 5
@@ -230,7 +231,7 @@ def scrape(url, url_map):
 
 
 def load_url_map(path=URL_MAP_CSV):
-    """home_listing_id -> destination URL, maintained by hand, never written."""
+    """home_listing_id -> destination URL."""
     try:
         with open(path, encoding="utf-8", newline="") as f:
             return {r["home_listing_id"].strip(): r["url"].strip()
@@ -239,6 +240,26 @@ def load_url_map(path=URL_MAP_CSV):
     except FileNotFoundError:
         print(f"WARNING: {path} not found; every listing will use the fallback link.")
         return {}
+
+
+def prune_url_map(url_map, live_ids, path=URL_MAP_CSV):
+    """Drop links for listings that have left the site.
+
+    Only called after the feed has passed its safety checks, so a partial
+    crawl can never strip the file. Additions cannot be automated: a Lofty
+    link carries an internal id that exists only on their site.
+    """
+    stale = sorted(set(url_map) - live_ids)
+    if not stale:
+        return
+    kept = {k: v for k, v in url_map.items() if k in live_ids}
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["home_listing_id", "url"])
+        for k in sorted(kept):
+            w.writerow([k, kept[k]])
+    print(f"Removed {len(stale)} destination link(s) for listings no longer "
+          f"on the site: {', '.join(stale)}")
 
 
 def previous_count(path):
@@ -305,6 +326,8 @@ def main():
         w.writeheader()
         for r in rows:
             w.writerow({c: r.get(c, "") for c in COLUMNS})
+
+    prune_url_map(url_map, {r["home_listing_id"] for r in rows})
 
     unmapped = [r["home_listing_id"] for r in rows
                 if r["url"] == FALLBACK_URL]
