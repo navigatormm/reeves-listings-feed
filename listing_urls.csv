@@ -1,38 +1,5 @@
 home_listing_id,address,url
-A2331131,"305 Precedence View, Cochrane",
-A2345538,"4116 Brisebois Drive Nw, Calgary",
-A2345845,"1208 123 4 Street Ne, Calgary",
-A2347363,"81 Osprey Hill Way Sw, Calgary",
-A2347647,"154 Annette Landing Nw, Calgary",
-A2348663,"62 Southborough Crescent, Cochrane",
-A2348912,"308 1513 26 Avenue Sw, Calgary",
-A2348990,"725 53 Avenue Sw, Calgary",
-A2349245,"177 Mitchell Road Nw, Calgary",
-A2349248,"174 Mitchell Road Nw, Calgary",
-A2349249,"63 Annette Rise Nw, Calgary",
-A2350717,"532 Bridgeport Street, Chestermere",
-A2351225,"291 Legacy Mount Se, Calgary",
-A2351296,"117 Mahogany Place Se, Calgary",
-A2352367,"271 Dawson Wharf Rise, Chestermere",
-A2352464,"315 8235 8 Avenue Sw, Calgary",
-A2352726,"207 2425 90 Avenue Sw, Calgary",
-A2353364,"107 Masters Way Se, Calgary",
-A2353386,"15041 37 Street Sw, Calgary",
-A2353692,"1905 525 River Heights Drive, Cochrane",
-A2353930,"220 Livingston View Ne, Calgary",
-A2353950,"42 Legacy Reach Circle Se, Calgary",
-A2354165,"1505 525 River Heights Drive, Cochrane",
-A2354208,"125 Quartz Crescent, Cochrane",
-A2354440,"216 Silverado Range Heights Sw, Calgary",
-A2354461,"32 Snowberry Lane, Okotoks",
-A2354830,"90 Heartwood Villas Se, Calgary",
-A2354868,"444 Legacy Woods Circle Se, Calgary",
-A2355572,"804 525 River Heights Drive, Cochrane",
-A2357244,"220 Marina Cove Se, Calgary",
-A2357641,"2057 Vantage Way Sw, Airdrie",
-A2357672,"2053 Vantage Way Sw, Airdrie",
-A2357702,"2049 Vantage Way Sw, Airdrie",
-A2357726,"2045 Vantage Way Sw, Airdrie",
+A2331131,"305 Precedence View, Cochrane",https://erinreeves.expportal.com/listing-detail/1189853860/305-Precedence-VW-Cochrane-AB
 A2338132,"414 8235 8 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1187777117/8235-8-AVE-SW-414-Calgary-AB
 A2338428,"2061 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1188867052/2061-Vantage-WAY-SW-Airdrie-AB
 A2340009,"78 Heartwood Villas Se, Calgary",https://erinreeves.expportal.com/listing-detail/1188143037/78-Heartwood-Villas-SE-Calgary-AB
@@ -42,4 +9,37 @@ A2341408,"410 11 Avenue Ne, Calgary",https://erinreeves.expportal.com/listing-de
 A2341773,"54 285 Chelsea Court, Chestermere",https://erinreeves.expportal.com/listing-detail/1188557594/285-Chelsea-CT-54-Chestermere-AB
 A2342560,"411 4350 Seton Drive Se, Calgary",https://erinreeves.expportal.com/listing-detail/1189110073/4350-Seton-DR-SE-411-Calgary-AB
 A2344411,"659 Chelsea Pier Run, Chestermere",https://erinreeves.expportal.com/listing-detail/1189127685/659-Chelsea-Pier-RUN-Chestermere-AB
+A2345538,"4116 Brisebois Drive Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1189843087/4116-Brisebois-DR-NW-Calgary-AB
+A2345845,"1208 123 4 Street Ne, Calgary",https://erinreeves.expportal.com/listing-detail/1189720592/123-4-ST-NE-1208-Calgary-AB
 A2346327,"116 Quartz Crescent, Cochrane",https://erinreeves.expportal.com/listing-detail/1189558938/116-Quartz-CRES-Cochrane-AB
+A2347363,"81 Osprey Hill Way Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1189772157/81-Osprey-Hill-WAY-SW-Calgary-AB
+A2347647,"154 Annette Landing Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1190007505/154-Annette-LNDG-NW-Calgary-AB
+A2348663,"62 Southborough Crescent, Cochrane",https://erinreeves.expportal.com/listing-detail/1190058530/62-Southborough-CRES-Cochrane-AB
+A2348912,"308 1513 26 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1190540629/1513-26-AVE-SW-308-Calgary-AB
+A2348990,"725 53 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1190182958/725-53-AVE-SW-Calgary-AB
+A2349245,"177 Mitchell Road Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1190204894/177-Mitchell-RD-NW-Calgary-AB
+A2349248,"174 Mitchell Road Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1190202836/174-Mitchell-RD-NW-Calgary-AB
+A2349249,"63 Annette Rise Nw, Calgary",https://erinreeves.expportal.com/listing-detail/1190204958/63-Annette-Rise-NW-Calgary-AB
+A2350717,"532 Bridgeport Street, Chestermere",https://erinreeves.expportal.com/listing-detail/1190553009/532-Bridgeport-ST-Chestermere-AB
+A2351225,"291 Legacy Mount Se, Calgary",https://erinreeves.expportal.com/listing-detail/1190759225/291-Legacy-MT-SE-Calgary-AB
+A2351296,"117 Mahogany Place Se, Calgary",https://erinreeves.expportal.com/listing-detail/1190754324/117-Mahogany-PL-SE-Calgary-AB
+A2352367,"271 Dawson Wharf Rise, Chestermere",https://erinreeves.expportal.com/listing-detail/1190872705/271-Dawson-Wharf-Rise-Chestermere-AB
+A2352464,"315 8235 8 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1190953457/8235-8-AVE-SW-315-Calgary-AB
+A2352726,"207 2425 90 Avenue Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1191042397/2425-90-AVE-SW-207-Calgary-AB
+A2353364,"107 Masters Way Se, Calgary",https://erinreeves.expportal.com/listing-detail/1191202410/107-Masters-WAY-SE-Calgary-AB
+A2353386,"15041 37 Street Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1191216183/15041-37-ST-SW-Calgary-AB
+A2353692,"1905 525 River Heights Drive, Cochrane",https://erinreeves.expportal.com/listing-detail/1191547738/525-River-Heights-DR-1905-Cochrane-AB
+A2353930,"220 Livingston View Ne, Calgary",https://erinreeves.expportal.com/listing-detail/1191432020/220-Livingston-VW-NE-Calgary-AB
+A2353950,"42 Legacy Reach Circle Se, Calgary",https://erinreeves.expportal.com/listing-detail/1191546260/42-Legacy-Reach-CIR-SE-Calgary-AB
+A2354165,"1505 525 River Heights Drive, Cochrane",https://erinreeves.expportal.com/listing-detail/1191402033/525-River-Heights-DR-1505-Cochrane-AB
+A2354208,"125 Quartz Crescent, Cochrane",https://erinreeves.expportal.com/listing-detail/1191389325/125-Quartz-CRES-Cochrane-AB
+A2354440,"216 Silverado Range Heights Sw, Calgary",https://erinreeves.expportal.com/listing-detail/1191538901/216-Silverado-Range-HTS-SW-Calgary-AB
+A2354461,"32 Snowberry Lane, Okotoks",https://erinreeves.expportal.com/listing-detail/1191542557/32-Snowberry-LN-Okotoks-AB
+A2354830,"90 Heartwood Villas Se, Calgary",https://erinreeves.expportal.com/listing-detail/1191864420/90-Heartwood-Villas-SE-Calgary-AB
+A2354868,"444 Legacy Woods Circle Se, Calgary",https://erinreeves.expportal.com/listing-detail/1191740982/444-Legacy-Woods-CIR-SE-Calgary-AB
+A2355572,"804 525 River Heights Drive, Cochrane",https://erinreeves.expportal.com/listing-detail/1192139219/525-River-Heights-DR-804-Cochrane-AB
+A2357244,"220 Marina Cove Se, Calgary",https://erinreeves.expportal.com/listing-detail/1192152600/220-Marina-CV-SE-Calgary-AB
+A2357641,"2057 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1192152598/2057-Vantage-WAY-SW-Airdrie-AB
+A2357672,"2053 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1192139217/2053-Vantage-WAY-SW-Airdrie-AB
+A2357702,"2049 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1192139166/2049-Vantage-WAY-SW-Airdrie-AB
+A2357726,"2045 Vantage Way Sw, Airdrie",https://erinreeves.expportal.com/listing-detail/1192139172/2045-Vantage-WAY-SW-Airdrie-AB
